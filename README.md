@@ -54,6 +54,11 @@ Planned feature set (built incrementally — see Phases below):
 - **Explain SQL:** reuses the same read-only validator every other feature
   uses before asking the LLM to explain a query, and optionally grounds
   the explanation in a real sandbox schema for a live output preview
+- **Query Optimizer:** static analysis (`app/core/optimizer/static_analysis.py`)
+  is pure string/paren analysis with no LLM or DB dependency, so findings
+  are instant and free; the AI rewrite step layers on top and, when a
+  sandbox dataset is loaded, is grounded in a real `EXPLAIN` plan
+  (`app/core/db/explain_plan.py`) rather than guessing at index impact
 
 ## Folder Structure
 
@@ -69,6 +74,7 @@ app/
       models.py          # ORM models (added per-phase)
       query_runner.py     # Safe execution of user-submitted read-only SQL
       comparison.py        # Compare a query's output against an expected result
+      explain_plan.py      # Real MySQL EXPLAIN plan for a read-only query
       sandbox/
         schema.py          # SQLAlchemy Core table defs + dataset registry
         seed_data.py        # Deterministic (seeded) fake data generators
@@ -86,6 +92,10 @@ app/
     explain/
       models.py            # ClauseExplanation / ExplanationResult
       explainer.py           # LLM -> clause breakdown, execution order, etc.
+    optimizer/
+      models.py            # StaticFinding / OptimizationResult
+      static_analysis.py    # Deterministic anti-pattern checks, no LLM/DB
+      optimizer.py           # LLM (+ static findings + EXPLAIN) -> rewrite
     llm/
       base.py            # LLMProvider interface
       anthropic_provider.py
@@ -164,7 +174,13 @@ pytest
       Optionally grounded in a real sandbox dataset for a live result
       preview. Deep index/rewrite recommendations are left to the Query
       Optimizer phase.
-- [ ] Phase 7 — Query Optimizer
+- [x] **Phase 7 — Query Optimizer:** deterministic static analysis
+      (SELECT *, missing WHERE, non-sargable predicates, leading-wildcard
+      LIKE, implicit cross joins, repeated subqueries, redundant
+      DISTINCT+GROUP BY) runs instantly with no LLM call, feeding into an
+      AI-generated rewrite, index recommendations, and impact estimate -
+      grounded in a real MySQL EXPLAIN plan when a sandbox dataset is
+      loaded.
 - [ ] Phase 8 — Mock SQL Interview
 - [ ] Phase 9 — Progress Dashboard
 - [ ] Phase 10 — Daily Challenge & polish
