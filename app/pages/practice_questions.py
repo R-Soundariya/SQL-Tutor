@@ -3,17 +3,20 @@ dataset/topic/difficulty/company, answer it against real sandbox data, and
 get AI-graded feedback (score, mistakes, suggestions)."""
 
 import logging
+import uuid
 
 import streamlit as st
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.db.comparison import results_match
 from app.core.db.query_runner import UnsafeQueryError, run_read_only_query
+from app.core.db.sandbox.loader import get_schema_ddl
 from app.core.db.sandbox.schema import DATASETS
 from app.core.llm.factory import get_llm_provider
 from app.core.practice.constants import COMPANIES, DIFFICULTIES, TOPICS
 from app.core.practice.evaluator import EvaluationError, evaluate_answer
 from app.core.practice.question_generator import QuestionGenerationError, generate_question
+from app.ui.hint_section import render_hint_section
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +39,7 @@ if st.button("Generate question", type="primary"):
             expected_df = run_read_only_query(question.answer_query)  # sanity-check it actually runs
             st.session_state["practice_question"] = question
             st.session_state["practice_expected_df"] = expected_df
+            st.session_state["practice_question_key"] = uuid.uuid4().hex
             st.session_state.pop("practice_evaluation", None)
             st.session_state["practice_user_sql"] = ""
         except (QuestionGenerationError, UnsafeQueryError, SQLAlchemyError, ValueError) as exc:
@@ -54,6 +58,14 @@ if question:
     st.caption(f"Tables: {', '.join(question.relevant_tables)} (dataset: {DATASETS[question.dataset_id].display_name})")
 
     user_sql = st.text_area("Your SQL answer", height=160, key="practice_user_sql")
+
+    render_hint_section(
+        state_key=f"practice_{st.session_state['practice_question_key']}",
+        question_text=question.question,
+        schema_ddl="\n\n".join(get_schema_ddl(question.dataset_id).values()),
+        answer_query=question.answer_query,
+        current_attempt=user_sql,
+    )
 
     if st.button("Submit answer"):
         expected_df = st.session_state["practice_expected_df"]

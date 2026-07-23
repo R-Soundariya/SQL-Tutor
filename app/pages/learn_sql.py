@@ -7,8 +7,10 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.db.comparison import results_match
 from app.core.db.query_runner import UnsafeQueryError, run_read_only_query
+from app.core.db.sandbox.loader import get_schema_ddl
 from app.core.db.sandbox.schema import DATASETS
 from app.core.learning.lessons import LESSONS, LESSONS_BY_ID
+from app.ui.hint_section import render_hint_section
 
 st.title("Learn SQL")
 st.caption("Pick a topic, read through it, then practice against real sandbox data.")
@@ -45,6 +47,15 @@ st.caption(
 )
 
 user_sql = st.text_area("Your SQL answer", height=140, key=f"answer_{lesson.id}")
+
+render_hint_section(
+    state_key=f"learn_{lesson.id}",
+    question_text=lesson.practice_question,
+    schema_ddl="\n\n".join(get_schema_ddl(lesson.dataset_id).values()),
+    answer_query=lesson.answer_query,
+    current_attempt=user_sql,
+)
+
 check_col, reveal_col = st.columns(2)
 check_clicked = check_col.button("Run & check my answer", key=f"check_{lesson.id}")
 reveal_clicked = reveal_col.button("Show expected output", key=f"reveal_{lesson.id}")

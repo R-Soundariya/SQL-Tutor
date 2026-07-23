@@ -47,6 +47,10 @@ Planned feature set (built incrementally — see Phases below):
   before being shown to the user. Correctness (`is_correct`) is always
   decided by a deterministic output comparison, never by the model's own
   opinion — the LLM only supplies the score, mistakes, and suggestions
+- **AI hints:** hint generation is decoupled from both Learn SQL lessons
+  and AI-generated practice questions (`app/core/hints/generator.py` takes
+  plain strings, not either type), so the same progressive-hint UI
+  component (`app/ui/hint_section.py`) works on both pages
 
 ## Folder Structure
 
@@ -74,12 +78,16 @@ app/
       constants.py          # Selectable topics/difficulties/companies
       question_generator.py # LLM -> validated GeneratedQuestion
       evaluator.py           # LLM + deterministic comparison -> EvaluationResult
+    hints/
+      generator.py          # LLM -> 3 progressive hints, provider-agnostic
     llm/
       base.py            # LLMProvider interface
       anthropic_provider.py
       openai_provider.py
       factory.py          # Resolves the configured provider
       json_utils.py        # Tolerant JSON extraction from LLM responses
+  ui/
+    hint_section.py       # Shared Streamlit hint widget (Learn SQL + Practice)
 tests/                 # Unit tests (no real network/DB calls)
 scripts/
   smoke_test.py         # Manual real DB + LLM connectivity check
@@ -139,7 +147,11 @@ pytest
       suggestions) with correctness decided deterministically rather than
       by the model's own opinion. Views/Indexes/Optimization topics
       deferred to the Query Optimizer phase.
-- [ ] Phase 5 — AI Hint System
+- [x] **Phase 5 — AI Hint System:** progressive 3-level hints
+      (concept → specifics → structural sketch) available from both Learn
+      SQL and Practice Questions, generated in a single LLM call and
+      revealed one at a time. A hint that leaks the full answer query is
+      rejected programmatically, not just by prompt instruction.
 - [ ] Phase 6 — Explain My Query
 - [ ] Phase 7 — Query Optimizer
 - [ ] Phase 8 — Mock SQL Interview
