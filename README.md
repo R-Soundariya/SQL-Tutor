@@ -51,6 +51,9 @@ Planned feature set (built incrementally — see Phases below):
   and AI-generated practice questions (`app/core/hints/generator.py` takes
   plain strings, not either type), so the same progressive-hint UI
   component (`app/ui/hint_section.py`) works on both pages
+- **Explain SQL:** reuses the same read-only validator every other feature
+  uses before asking the LLM to explain a query, and optionally grounds
+  the explanation in a real sandbox schema for a live output preview
 
 ## Folder Structure
 
@@ -80,6 +83,9 @@ app/
       evaluator.py           # LLM + deterministic comparison -> EvaluationResult
     hints/
       generator.py          # LLM -> 3 progressive hints, provider-agnostic
+    explain/
+      models.py            # ClauseExplanation / ExplanationResult
+      explainer.py           # LLM -> clause breakdown, execution order, etc.
     llm/
       base.py            # LLMProvider interface
       anthropic_provider.py
@@ -152,7 +158,12 @@ pytest
       SQL and Practice Questions, generated in a single LLM call and
       revealed one at a time. A hint that leaks the full answer query is
       rejected programmatically, not just by prompt instruction.
-- [ ] Phase 6 — Explain My Query
+- [x] **Phase 6 — Explain My Query:** paste any SELECT/WITH query and get
+      a clause-by-clause breakdown, logical execution order, business
+      meaning, expected output, and lightweight complexity notes.
+      Optionally grounded in a real sandbox dataset for a live result
+      preview. Deep index/rewrite recommendations are left to the Query
+      Optimizer phase.
 - [ ] Phase 7 — Query Optimizer
 - [ ] Phase 8 — Mock SQL Interview
 - [ ] Phase 9 — Progress Dashboard
