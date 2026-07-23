@@ -12,6 +12,7 @@ get instant AI feedback, optimize queries, and track your progress
 over time.
 
 **Use the sidebar to navigate:**
+- **Daily Challenge** — one timed question a day, same for everyone
 - **Database Sandbox** — load seeded practice datasets and query them directly
 - **Learn SQL** — interactive concept lessons
 - **Practice Questions** — topic/difficulty/company-targeted questions
@@ -20,8 +21,5 @@ over time.
 - **Explain SQL** — clause-by-clause breakdown of any query
 - **Progress Dashboard** — accuracy, streaks, topic mastery
 - **Settings** — configure LLM provider and database connection
-
-*Features are being built incrementally, phase by phase — check back as
-new pages come online.*
 """
 )

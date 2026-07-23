@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime
 
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.db.engine import get_session
 from app.core.progress.models import Attempt, ensure_progress_tables
+from app.core.timeutils import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ def record_attempt(
                     dataset_id=dataset_id,
                     is_correct=is_correct,
                     score=score,
-                    created_at=datetime.utcnow(),
+                    created_at=utc_now(),
                 )
             )
     except SQLAlchemyError:

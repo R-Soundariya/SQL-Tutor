@@ -5,12 +5,11 @@ Business Analysts, and BI Analysts. Learn SQL concepts, practice real
 interview questions, get instant AI feedback, optimize queries, and track
 your progress over time.
 
-> **Status:** Under active, phased development. This README is updated as
-> each phase lands.
+> **Status:** All 10 planned phases are implemented and unit-tested. Live
+> end-to-end verification against a real MySQL server and LLM API key is
+> still outstanding — see "Live Verification" below.
 
 ## Features
-
-Planned feature set (built incrementally — see Phases below):
 
 - SQL Interview Mode — leveled practice questions with AI scoring & feedback
 - SQL Learning Mode — interactive lessons per concept
@@ -72,6 +71,14 @@ Planned feature set (built incrementally — see Phases below):
   `app/core/progress/stats.py` accepts an optional pre-loaded DataFrame,
   so the stats logic is unit-tested with synthetic data, no database
   required
+- **Daily Challenge:** the *category* (dataset/topic/difficulty) is picked
+  by a pure function seeded from the calendar date
+  (`app/core/daily_challenge/provider.py::schedule_for_date`), but the
+  actual question text is generated once via the LLM and persisted -
+  determinism alone can't produce question text, only which category to
+  ask about. The provider takes an injectable `engine` parameter so its
+  caching behavior is tested against an in-memory SQLite database rather
+  than requiring real MySQL
 
 ## Folder Structure
 
@@ -106,6 +113,10 @@ app/
       models.py            # Attempt ORM model + table lifecycle
       recorder.py            # Best-effort attempt logging (never raises)
       stats.py                # Accuracy/mastery/streak/history aggregation
+    daily_challenge/
+      models.py            # DailyChallengeRow ORM model + table lifecycle
+      provider.py            # Date-seeded scheduling + get-or-create-and-persist
+    timeutils.py           # utc_now() - naive-UTC helper used across models
     hints/
       generator.py          # LLM -> 3 progressive hints, provider-agnostic
     explain/
@@ -159,6 +170,36 @@ Run the unit test suite (no credentials required):
 ```
 pytest
 ```
+
+## Live Verification
+
+All 98 unit tests pass without any real credentials — every AI feature is
+tested against a fake LLM provider, and every DB-dependent function either
+accepts an injectable engine/DataFrame or is exercised through its
+error-handling path. What hasn't been verified yet is a real end-to-end run:
+actual Claude/GPT output quality (question wording, hint usefulness,
+optimizer rewrites) and actual MySQL behavior under the app's real schema.
+Recommended before treating this as production-ready:
+
+1. Fill in `.env` with real MySQL credentials and at least one LLM API key.
+2. `python scripts/load_sandbox_data.py` to seed all three datasets.
+3. `python scripts/smoke_test.py` to confirm connectivity.
+4. Click through each AI feature once for real: Practice Questions, Hints,
+   Explain SQL, Query Optimizer, Mock Interview, Daily Challenge.
+
+## Known Scope Gaps
+
+Called out explicitly, not hidden:
+
+- **Sandbox datasets:** 3 of the spec's 8 (HR, E-commerce, Streaming). The
+  loader architecture (`app/core/db/sandbox/`) extends to Spotify, Anime,
+  and Food Delivery with no new plumbing - just table defs + seed data.
+- **Learn SQL:** 8 of ~18 topics. RIGHT/FULL/SELF JOIN, UNION, LAG/LEAD,
+  running totals, and date functions follow the same `Lesson` shape.
+- **Practice Questions / Mock Interview topics:** Views, Indexes, and Query
+  Optimization are intentionally excluded from the AI question generator -
+  they don't fit a "write a SELECT, compare output" loop the way the other
+  13 topics do.
 
 ## Development Phases
 
@@ -215,7 +256,14 @@ pytest
       attempted, accuracy, average score, topic mastery (chart + table),
       weakest concepts, daily streak, daily activity chart, and practice
       history.
-- [ ] Phase 10 — Daily Challenge & polish
+- [x] **Phase 10 — Daily Challenge:** one AI-generated question per
+      calendar day, persisted (`daily_challenges` table) so every visit
+      that day reuses the same question instead of calling the LLM again;
+      deterministic date-seeded topic/difficulty/dataset selection; a live
+      timer (`st.fragment(run_every="1s")`); grading via the same
+      evaluator as Practice Questions; and a full explanation of the model
+      answer afterward via the same explainer from Phase 6. This completes
+      every feature from the original spec.
 
 ## Future Enhancements
 

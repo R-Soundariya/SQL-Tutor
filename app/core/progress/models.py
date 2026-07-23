@@ -12,6 +12,7 @@ from sqlalchemy import Boolean, DateTime, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db.engine import Base, ensure_database_exists, get_engine
+from app.core.timeutils import utc_now
 
 
 class Attempt(Base):
@@ -27,7 +28,7 @@ class Attempt(Base):
     dataset_id: Mapped[str] = mapped_column(String(50))
     is_correct: Mapped[bool] = mapped_column(Boolean)
     score: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
 
 
 _tables_ensured = False
