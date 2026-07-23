@@ -27,3 +27,24 @@ class EvaluationResult:
     summary: str
     mistakes: tuple[str, ...]
     suggestions: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class InterviewQuestionRecord:
+    """One question, and (once answered) its evaluation, within a Mock Interview."""
+
+    question: GeneratedQuestion
+    evaluation: EvaluationResult | None
+
+
+@dataclass(frozen=True)
+class InterviewReport:
+    """Aggregate AI-generated feedback across a completed Mock Interview."""
+
+    average_score: float
+    correct_count: int
+    total_questions: int
+    strengths: tuple[str, ...]
+    weaknesses: tuple[str, ...]
+    topics_to_improve: tuple[str, ...]
+    recommended_learning_path: str

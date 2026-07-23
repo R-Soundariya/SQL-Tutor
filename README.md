@@ -59,6 +59,11 @@ Planned feature set (built incrementally — see Phases below):
   are instant and free; the AI rewrite step layers on top and, when a
   sandbox dataset is loaded, is grounded in a real `EXPLAIN` plan
   (`app/core/db/explain_plan.py`) rather than guessing at index impact
+- **Mock Interview:** an orchestration layer, not a reimplementation - it
+  drives the same `generate_question`/`evaluate_answer` functions from
+  Practice Questions and the same hint widget from Phase 5, one question
+  at a time (lazily generated, not all 15 upfront) with a deterministic
+  difficulty/topic schedule (`app/core/practice/mock_interview.py`)
 
 ## Folder Structure
 
@@ -83,10 +88,12 @@ app/
       models.py            # Lesson dataclass
       lessons.py            # Lesson content (curriculum data)
     practice/
-      models.py            # GeneratedQuestion / EvaluationResult
+      models.py            # GeneratedQuestion / EvaluationResult / InterviewQuestionRecord / InterviewReport
       constants.py          # Selectable topics/difficulties/companies
       question_generator.py # LLM -> validated GeneratedQuestion
       evaluator.py           # LLM + deterministic comparison -> EvaluationResult
+      mock_interview.py      # Difficulty/topic schedule for the 15-question interview
+      report_generator.py    # LLM -> aggregate strengths/weaknesses/learning path
     hints/
       generator.py          # LLM -> 3 progressive hints, provider-agnostic
     explain/
@@ -181,7 +188,13 @@ pytest
       AI-generated rewrite, index recommendations, and impact estimate -
       grounded in a real MySQL EXPLAIN plan when a sandbox dataset is
       loaded.
-- [ ] Phase 8 — Mock SQL Interview
+- [x] **Phase 8 — Mock SQL Interview:** 15 AI-generated questions per
+      session (5 Beginner, 5 Intermediate, 5 Advanced, cycling through all
+      13 topics for breadth), graded one at a time by reusing the Practice
+      Questions evaluator, hints available via the same shared widget, and
+      an aggregate strengths/weaknesses/topics-to-improve/learning-path
+      report at the end. Correct count and average score are computed
+      deterministically, not asserted by the LLM.
 - [ ] Phase 9 — Progress Dashboard
 - [ ] Phase 10 — Daily Challenge & polish
 
