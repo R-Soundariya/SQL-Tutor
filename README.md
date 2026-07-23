@@ -55,10 +55,14 @@ app/
       engine.py          # SQLAlchemy engine/session + connection test
       models.py          # ORM models (added per-phase)
       query_runner.py     # Safe execution of user-submitted read-only SQL
+      comparison.py        # Compare a query's output against an expected result
       sandbox/
         schema.py          # SQLAlchemy Core table defs + dataset registry
         seed_data.py        # Deterministic (seeded) fake data generators
         loader.py           # Create/reset/seed tables, generate DDL text
+    learning/
+      models.py            # Lesson dataclass
+      lessons.py            # Lesson content (curriculum data)
     llm/
       base.py            # LLMProvider interface
       anthropic_provider.py
@@ -109,7 +113,13 @@ pytest
       Streaming Catalog datasets with deterministic seed data; safe
       read-only query execution; Sandbox page (load/reset, schema, preview,
       run-a-query).
-- [ ] Phase 3 — SQL Learning Mode
+- [x] **Phase 3 — SQL Learning Mode (batch 1):** lesson content model,
+      8 lessons (SELECT/WHERE/ORDER BY, GROUP BY, HAVING, INNER JOIN,
+      LEFT JOIN, CASE, CTE, ranking window functions) each with
+      explanation/syntax/visual example/practice question/business use
+      case/interview questions, self-check against sandbox data (no AI
+      call). Remaining topics (RIGHT/FULL/SELF JOIN, UNION, LAG/LEAD,
+      running totals, date functions) follow the same pattern.
 - [ ] Phase 4 — Practice Questions / Interview Mode + AI evaluation
 - [ ] Phase 5 — AI Hint System
 - [ ] Phase 6 — Explain My Query
