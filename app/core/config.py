@@ -6,6 +6,7 @@ from functools import lru_cache
 from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from sqlalchemy import URL
 
 
 class Settings(BaseSettings):
@@ -33,11 +34,20 @@ class Settings(BaseSettings):
 
     @property
     def database_url(self) -> str:
-        """SQLAlchemy connection URL for the configured MySQL database."""
-        return (
-            f"mysql+pymysql://{self.db_user}:{self.db_password}"
-            f"@{self.db_host}:{self.db_port}/{self.db_name}"
-        )
+        """SQLAlchemy connection URL for the configured MySQL database.
+
+        Built via SQLAlchemy's URL.create() rather than an f-string so that
+        special characters in the username/password (e.g. '@', ':', '/')
+        are correctly percent-encoded instead of corrupting the URL.
+        """
+        return URL.create(
+            drivername="mysql+pymysql",
+            username=self.db_user,
+            password=self.db_password,
+            host=self.db_host,
+            port=self.db_port,
+            database=self.db_name,
+        ).render_as_string(hide_password=False)
 
 
 @lru_cache

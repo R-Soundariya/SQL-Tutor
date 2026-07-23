@@ -6,6 +6,11 @@ Requires a real .env with working DB credentials - this makes real DDL/DML
 calls, so it is a manual script rather than a pytest test.
 """
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 from app.core.db.sandbox.loader import load_all_datasets
 
 

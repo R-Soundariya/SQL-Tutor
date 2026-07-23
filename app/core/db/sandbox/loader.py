@@ -49,6 +49,8 @@ def load_dataset(dataset_id: str, engine: Engine | None = None) -> dict[str, int
 
 def load_all_datasets(engine: Engine | None = None) -> dict[str, dict[str, int]]:
     """Load every registered sandbox dataset. Returns per-dataset row counts."""
+    if engine is None:
+        ensure_database_exists()
     engine = engine or get_engine()
     return {dataset_id: load_dataset(dataset_id, engine=engine) for dataset_id in DATASETS}
 

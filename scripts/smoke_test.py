@@ -7,6 +7,11 @@ Not part of the pytest suite on purpose - this makes a real API call and
 should be run deliberately, not on every test run.
 """
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 from app.core.config import get_settings
 from app.core.db.engine import test_connection
 from app.core.llm.factory import get_llm_provider

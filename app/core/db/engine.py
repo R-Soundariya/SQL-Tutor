@@ -6,7 +6,7 @@ import logging
 from contextlib import contextmanager
 from typing import Iterator
 
-from sqlalchemy import create_engine, text
+from sqlalchemy import URL, create_engine, text
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from app.core.config import get_settings
@@ -60,7 +60,13 @@ def ensure_database_exists() -> None:
     via get_engine(), since the configured database may not exist yet.
     """
     settings = get_settings()
-    server_url = f"mysql+pymysql://{settings.db_user}:{settings.db_password}@{settings.db_host}:{settings.db_port}"
+    server_url = URL.create(
+        drivername="mysql+pymysql",
+        username=settings.db_user,
+        password=settings.db_password,
+        host=settings.db_host,
+        port=settings.db_port,
+    )
     server_engine = create_engine(server_url, future=True)
     try:
         with server_engine.connect() as conn:
