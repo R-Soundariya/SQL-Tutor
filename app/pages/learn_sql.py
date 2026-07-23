@@ -10,6 +10,7 @@ from app.core.db.query_runner import UnsafeQueryError, run_read_only_query
 from app.core.db.sandbox.loader import get_schema_ddl
 from app.core.db.sandbox.schema import DATASETS
 from app.core.learning.lessons import LESSONS, LESSONS_BY_ID
+from app.core.progress.recorder import record_attempt
 from app.ui.hint_section import render_hint_section
 
 st.title("Learn SQL")
@@ -64,7 +65,15 @@ if check_clicked:
     try:
         user_df = run_read_only_query(user_sql)
         expected_df = run_read_only_query(lesson.answer_query)
-        if results_match(user_df, expected_df):
+        is_correct = results_match(user_df, expected_df)
+        record_attempt(
+            source="learn_sql",
+            topic=lesson.category,
+            difficulty=lesson.difficulty,
+            dataset_id=lesson.dataset_id,
+            is_correct=is_correct,
+        )
+        if is_correct:
             st.success("Correct — your output matches the expected result.")
         else:
             st.warning("Not quite yet — compare your output against the expected result below.")

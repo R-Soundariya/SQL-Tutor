@@ -64,6 +64,14 @@ Planned feature set (built incrementally — see Phases below):
   Practice Questions and the same hint widget from Phase 5, one question
   at a time (lazily generated, not all 15 upfront) with a deterministic
   difficulty/topic schedule (`app/core/practice/mock_interview.py`)
+- **Progress persistence:** `app/core/progress/models.py` defines the
+  app's own `Attempt` ORM table on `Base` (reserved for exactly this since
+  Phase 1, separate from the sandbox datasets' own `MetaData`).
+  `record_attempt()` is best-effort and never raises, so a DB hiccup can't
+  break a grading flow that already succeeded. Every aggregation in
+  `app/core/progress/stats.py` accepts an optional pre-loaded DataFrame,
+  so the stats logic is unit-tested with synthetic data, no database
+  required
 
 ## Folder Structure
 
@@ -94,6 +102,10 @@ app/
       evaluator.py           # LLM + deterministic comparison -> EvaluationResult
       mock_interview.py      # Difficulty/topic schedule for the 15-question interview
       report_generator.py    # LLM -> aggregate strengths/weaknesses/learning path
+    progress/
+      models.py            # Attempt ORM model + table lifecycle
+      recorder.py            # Best-effort attempt logging (never raises)
+      stats.py                # Accuracy/mastery/streak/history aggregation
     hints/
       generator.py          # LLM -> 3 progressive hints, provider-agnostic
     explain/
@@ -195,7 +207,14 @@ pytest
       an aggregate strengths/weaknesses/topics-to-improve/learning-path
       report at the end. Correct count and average score are computed
       deterministically, not asserted by the LLM.
-- [ ] Phase 9 — Progress Dashboard
+- [x] **Phase 9 — Progress Dashboard:** the first real write-path - every
+      graded attempt from Learn SQL, Practice Questions, and Mock
+      Interview is logged to a new `progress_attempts` table
+      (auto-created, best-effort so a logging failure never breaks the
+      grading flow that already succeeded). Dashboard shows questions
+      attempted, accuracy, average score, topic mastery (chart + table),
+      weakest concepts, daily streak, daily activity chart, and practice
+      history.
 - [ ] Phase 10 — Daily Challenge & polish
 
 ## Future Enhancements

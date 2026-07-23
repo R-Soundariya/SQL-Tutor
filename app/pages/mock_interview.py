@@ -19,6 +19,7 @@ from app.core.practice.mock_interview import NUM_QUESTIONS, difficulty_for_index
 from app.core.practice.models import InterviewQuestionRecord
 from app.core.practice.question_generator import QuestionGenerationError, generate_question
 from app.core.practice.report_generator import InterviewReportError, generate_interview_report
+from app.core.progress.recorder import record_attempt
 from app.ui.hint_section import render_hint_section
 
 logger = logging.getLogger(__name__)
@@ -126,6 +127,14 @@ else:
                                 outputs_match=outputs_match,
                             )
                             records[index] = dataclasses.replace(record, evaluation=evaluation)
+                            record_attempt(
+                                source="mock_interview",
+                                topic=question.topic,
+                                difficulty=question.difficulty,
+                                dataset_id=question.dataset_id,
+                                is_correct=evaluation.is_correct,
+                                score=evaluation.score,
+                            )
                             st.rerun()
                         except EvaluationError as exc:
                             st.error(f"Couldn't grade your answer: {exc}")

@@ -16,6 +16,7 @@ from app.core.llm.factory import get_llm_provider
 from app.core.practice.constants import COMPANIES, DIFFICULTIES, TOPICS
 from app.core.practice.evaluator import EvaluationError, evaluate_answer
 from app.core.practice.question_generator import QuestionGenerationError, generate_question
+from app.core.progress.recorder import record_attempt
 from app.ui.hint_section import render_hint_section
 
 logger = logging.getLogger(__name__)
@@ -97,6 +98,14 @@ if question:
                     outputs_match=outputs_match,
                 )
                 st.session_state["practice_evaluation"] = evaluation
+                record_attempt(
+                    source="practice_questions",
+                    topic=question.topic,
+                    difficulty=question.difficulty,
+                    dataset_id=question.dataset_id,
+                    is_correct=evaluation.is_correct,
+                    score=evaluation.score,
+                )
             except EvaluationError as exc:
                 st.session_state.pop("practice_evaluation", None)
                 st.error(f"Couldn't grade your answer: {exc}")
