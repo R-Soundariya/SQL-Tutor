@@ -41,6 +41,12 @@ Planned feature set (built incrementally — see Phases below):
   read-only `SELECT`/`WITH` statement and row-capped before execution
   (`app/core/db/query_runner.py`), reused by every feature that runs a
   user's own SQL
+- **AI question generation & grading:** the LLM is asked to return JSON
+  only (`app/core/llm/json_utils.py` tolerates stray markdown fences), and
+  a generated question's answer query is validated + sanity-executed
+  before being shown to the user. Correctness (`is_correct`) is always
+  decided by a deterministic output comparison, never by the model's own
+  opinion — the LLM only supplies the score, mistakes, and suggestions
 
 ## Folder Structure
 
@@ -63,11 +69,17 @@ app/
     learning/
       models.py            # Lesson dataclass
       lessons.py            # Lesson content (curriculum data)
+    practice/
+      models.py            # GeneratedQuestion / EvaluationResult
+      constants.py          # Selectable topics/difficulties/companies
+      question_generator.py # LLM -> validated GeneratedQuestion
+      evaluator.py           # LLM + deterministic comparison -> EvaluationResult
     llm/
       base.py            # LLMProvider interface
       anthropic_provider.py
       openai_provider.py
       factory.py          # Resolves the configured provider
+      json_utils.py        # Tolerant JSON extraction from LLM responses
 tests/                 # Unit tests (no real network/DB calls)
 scripts/
   smoke_test.py         # Manual real DB + LLM connectivity check
@@ -120,7 +132,13 @@ pytest
       case/interview questions, self-check against sandbox data (no AI
       call). Remaining topics (RIGHT/FULL/SELF JOIN, UNION, LAG/LEAD,
       running totals, date functions) follow the same pattern.
-- [ ] Phase 4 — Practice Questions / Interview Mode + AI evaluation
+- [x] **Phase 4 — Practice Questions / Interview Mode + AI evaluation:**
+      LLM-generated interview questions grounded in a real sandbox schema
+      (topic/difficulty/company-style selectable), user answers executed
+      against live data, AI-graded feedback (score/10, mistakes,
+      suggestions) with correctness decided deterministically rather than
+      by the model's own opinion. Views/Indexes/Optimization topics
+      deferred to the Query Optimizer phase.
 - [ ] Phase 5 — AI Hint System
 - [ ] Phase 6 — Explain My Query
 - [ ] Phase 7 — Query Optimizer
