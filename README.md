@@ -21,8 +21,9 @@ Planned feature set (built incrementally — see Phases below):
 - AI Hint System — progressive hints without revealing the answer
 - Explain My Query — clause-by-clause query explanations
 - Company-targeted practice question generation
-- Database Sandbox — practice against sample datasets (Employees, Sales,
-  Netflix, Spotify, etc.)
+- Database Sandbox — practice against seeded datasets: HR/Employees,
+  E-commerce Orders, Streaming Catalog (more coming: Spotify, Anime, Food
+  Delivery)
 
 ## Architecture
 
@@ -32,6 +33,14 @@ Planned feature set (built incrementally — see Phases below):
   interchangeable Anthropic and OpenAI backends, selected via config
 - **Config:** typed settings loaded from `.env` (`app/core/config.py`)
 - **Logging:** console + rotating file handler (`logs/app.log`)
+- **Sandbox datasets:** SQLAlchemy Core tables + deterministic (seeded)
+  Faker-generated rows (`app/core/db/sandbox`), so a reset always reproduces
+  the exact same data — required for later phases to grade a user's query
+  against a fixed expected output
+- **Query safety:** all user-submitted SQL is validated as a single
+  read-only `SELECT`/`WITH` statement and row-capped before execution
+  (`app/core/db/query_runner.py`), reused by every feature that runs a
+  user's own SQL
 
 ## Folder Structure
 
@@ -45,6 +54,11 @@ app/
     db/
       engine.py          # SQLAlchemy engine/session + connection test
       models.py          # ORM models (added per-phase)
+      query_runner.py     # Safe execution of user-submitted read-only SQL
+      sandbox/
+        schema.py          # SQLAlchemy Core table defs + dataset registry
+        seed_data.py        # Deterministic (seeded) fake data generators
+        loader.py           # Create/reset/seed tables, generate DDL text
     llm/
       base.py            # LLMProvider interface
       anthropic_provider.py
@@ -53,6 +67,7 @@ app/
 tests/                 # Unit tests (no real network/DB calls)
 scripts/
   smoke_test.py         # Manual real DB + LLM connectivity check
+  load_sandbox_data.py  # Manual: load/reset all sandbox datasets
 ```
 
 ## Installation
@@ -64,8 +79,9 @@ scripts/
    pip install -r requirements.txt
    ```
 2. Copy `.env.example` to `.env` and fill in your MySQL credentials and at
-   least one LLM API key (Anthropic and/or OpenAI).
-3. Create the MySQL database referenced by `DB_NAME` in `.env`.
+   least one LLM API key (Anthropic and/or OpenAI). The database named by
+   `DB_NAME` is created automatically the first time you load a sandbox
+   dataset (no manual `CREATE DATABASE` needed).
 
 ## Usage
 
@@ -89,7 +105,10 @@ pytest
 
 - [x] **Phase 1 — Project architecture & setup:** folder structure, config,
       logging, DB engine, LLM provider abstraction, Streamlit page shell.
-- [ ] Phase 2 — Database Sandbox & sample datasets
+- [x] **Phase 2 — Database Sandbox & sample datasets:** HR, E-commerce, and
+      Streaming Catalog datasets with deterministic seed data; safe
+      read-only query execution; Sandbox page (load/reset, schema, preview,
+      run-a-query).
 - [ ] Phase 3 — SQL Learning Mode
 - [ ] Phase 4 — Practice Questions / Interview Mode + AI evaluation
 - [ ] Phase 5 — AI Hint System

@@ -10,6 +10,7 @@ st.set_page_config(page_title="SQL Interview Coach AI", page_icon=":bar_chart:",
 
 pages = [
     st.Page("pages/home.py", title="Home", icon=":material/home:", default=True),
+    st.Page("pages/database_sandbox.py", title="Database Sandbox", icon=":material/storage:"),
     st.Page("pages/learn_sql.py", title="Learn SQL", icon=":material/school:"),
     st.Page("pages/practice_questions.py", title="Practice Questions", icon=":material/quiz:"),
     st.Page("pages/mock_interview.py", title="Mock Interview", icon=":material/mic:"),

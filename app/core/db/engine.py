@@ -53,6 +53,23 @@ def get_session() -> Iterator[Session]:
         session.close()
 
 
+def ensure_database_exists() -> None:
+    """Create the configured database if it doesn't already exist.
+
+    Connects at the MySQL server level (no database selected) rather than
+    via get_engine(), since the configured database may not exist yet.
+    """
+    settings = get_settings()
+    server_url = f"mysql+pymysql://{settings.db_user}:{settings.db_password}@{settings.db_host}:{settings.db_port}"
+    server_engine = create_engine(server_url, future=True)
+    try:
+        with server_engine.connect() as conn:
+            conn.execute(text(f"CREATE DATABASE IF NOT EXISTS `{settings.db_name}` CHARACTER SET utf8mb4"))
+            conn.commit()
+    finally:
+        server_engine.dispose()
+
+
 def test_connection() -> tuple[bool, str]:
     """Attempt a lightweight round-trip query against the configured database.
 

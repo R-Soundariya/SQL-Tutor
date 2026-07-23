@@ -12,6 +12,7 @@ get instant AI feedback, optimize queries, and track your progress
 over time.
 
 **Use the sidebar to navigate:**
+- **Database Sandbox** — load seeded practice datasets and query them directly
 - **Learn SQL** — interactive concept lessons
 - **Practice Questions** — topic/difficulty/company-targeted questions
 - **Mock Interview** — a full 15-question timed interview
